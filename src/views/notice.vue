@@ -24,7 +24,7 @@
                 channel: new BroadcastChannel('WidgetsMessage'),
                 i18n: '',
                 noticeOldArr: [],
-                isRefresh: false
+                timeout: null
             }
         },
         methods: {
@@ -47,7 +47,13 @@
                                 noticeArr.push(noticeObj)
                             }
                             this.notice(noticeArr)
-                            !this.isRefresh ? this.setIntervalEvent() : ''
+                            // 数据不为空 并且 数据与上次不一致
+                            if (this.noticeOldArr.length != 0 && this.noticeOldArr != noticeArr) {
+                                clearInterval(this.timeout)
+                                this.setIntervalEvent()
+                            } else {
+                                this.setIntervalEvent()
+                            }
                             this.broadcastWidgetHeight()
                         }
                     }, (err) => {
@@ -72,7 +78,8 @@
                 let noticeArrLength = this.noticeOldArr.length,
                     noticeItem = this.$refs.notice,
                     index = 1
-                setInterval(() => {
+                this.timeout = setInterval(() => {
+                    let noticeArrLength = this.noticeOldArr.length
                     index++
                     if (noticeArrLength - 1 == index) {
                         index = 1
@@ -112,7 +119,6 @@
         mounted() {
             this.channel.onmessage = (event) => {
                 if (event.data.action === 'RefreshData') {
-                    this.isRefresh = true
                     this.getNoticeData()
                 }
             }
