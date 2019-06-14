@@ -24,7 +24,8 @@
                 channel: new BroadcastChannel('WidgetsMessage'),
                 i18n: '',
                 noticeOldArr: [],
-                timeout: null
+                timeout: null,
+                refre: false
             }
         },
         methods: {
@@ -47,11 +48,11 @@
                                 noticeArr.push(noticeObj)
                             }
                             this.notice(noticeArr)
-                            // 数据不为空 并且 数据与上次不一致
-                            if (this.noticeOldArr.length != 0 && this.noticeOldArr != noticeArr) {
+                            // 数据不为空 并且 数据与上次不一致 并且需要刷新后
+                            if (this.noticeOldArr.length != 0 && this.noticeOldArr != noticeArr && this.refre) {
                                 clearInterval(this.timeout)
                                 this.setIntervalEvent()
-                            } else {
+                            } else if (!this.refre) {
                                 this.setIntervalEvent()
                             }
                             this.broadcastWidgetHeight()
@@ -119,6 +120,7 @@
         mounted() {
             this.channel.onmessage = (event) => {
                 if (event.data.action === 'RefreshData') {
+                    this.refre = true
                     this.getNoticeData()
                 }
             }
