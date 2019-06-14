@@ -23,7 +23,8 @@
             return {
                 channel: new BroadcastChannel('WidgetsMessage'),
                 i18n: '',
-                noticeOldArr: []
+                noticeOldArr: [],
+                isRefresh: false
             }
         },
         methods: {
@@ -46,6 +47,7 @@
                                 noticeArr.push(noticeObj)
                             }
                             this.notice(noticeArr)
+                            !this.isRefresh ? this.setIntervalEvent() : ''
                             this.broadcastWidgetHeight()
                         }
                     }, (err) => {
@@ -59,15 +61,17 @@
                 this.broadcastWidgetHeight()
             },
             notice(item) {
-                let index = 1,
-                    noticeItem = this.$refs.notice,
-                    newFirstItem = item[0],
+                let newFirstItem = item[0],
                     newLastItem = item[item.length - 1],
                     noticeArr = item;
                 noticeArr.unshift(newLastItem)
                 noticeArr.push(newFirstItem)
                 this.noticeOldArr = noticeArr
-                let noticeArrLength = this.noticeOldArr.length
+            },
+            setIntervalEvent() {
+                let noticeArrLength = this.noticeOldArr.length,
+                    noticeItem = this.$refs.notice,
+                    index = 1
                 setInterval(() => {
                     index++
                     if (noticeArrLength - 1 == index) {
@@ -76,7 +80,6 @@
                     }
                     this.animationNotice(noticeItem, index, 500)
                 }, 3000);
-                this.broadcastWidgetHeight()
             },
             animationNotice(noticeItem, index, duration) {
                 animation.transition(noticeItem, {
@@ -109,6 +112,7 @@
         mounted() {
             this.channel.onmessage = (event) => {
                 if (event.data.action === 'RefreshData') {
+                    this.isRefresh = true
                     this.getNoticeData()
                 }
             }
