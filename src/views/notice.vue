@@ -1,13 +1,19 @@
 <template>
-    <div ref="wrap">
+    <div ref="wrap" class="main">
         <!-- 公告 -->
-        <div class="notice-main">
+        <div class="notice-main"  :class="[noticeArray.length == 0? 'notice-no' : '']">
             <div ref='notice' class="notice-content">
-                <div class="notice flex" v-for="(item, index) in noticeOldArr" :key='index' @click='noticeEvent(item.action)'>
+                <div class="notice flex" v-for="(item, index) in noticeArray" :key='index' @click='noticeEvent(item.action)'>
                     <text class="c255 f35">{{i18n.Notice}}</text>
                     <div class="notice-lines"></div>
                     <text class="lines1 notice-text f28 fw4">{{item.title}}</text>
                 </div>
+            </div>
+        </div>
+        <div class='no-notice flex-ac flex-jc' v-if='noticeArray.length == 0'>
+            <div class="flex-dr">
+                <bui-image src="/image/sleep.png" width="42px" height="39px"></bui-image>
+                <text class="f26 c51 fw4 pl15 center-height">{{isError?i18n.NoneData:i18n.ErrorLoadData}}</text>
             </div>
         </div>
     </div>
@@ -23,9 +29,10 @@
             return {
                 channel: new BroadcastChannel('WidgetsMessage'),
                 i18n: '',
-                noticeOldArr: [],
+                noticeArray: [],
                 timeout: null,
-                refre: false
+                refre: false,
+                isError: true
             }
         },
         methods: {
@@ -38,6 +45,7 @@
                         url: params.comwidgetsUri + '/notice/list',
                     }).then((res) => {
                         if (res.code == 200) {
+                            this.isError = true
                             let noticeArr = []
                             for (let index = 0; index < res.data.length; index++) {
                                 const element = res.data[index];
@@ -49,7 +57,7 @@
                             }
                             this.notice(noticeArr)
                             // 数据不为空 并且 数据与上次不一致 并且需要刷新后
-                            if (this.noticeOldArr.length != 0 && this.noticeOldArr != noticeArr && this.refre) {
+                            if (this.noticeArray.length != 0 && this.noticeArray != noticeArr && this.refre) {
                                 clearInterval(this.timeout)
                                 this.setIntervalEvent()
                             } else if (!this.refre) {
@@ -65,6 +73,7 @@
                 });
             },
             error() {
+                this.isError = false
                 this.broadcastWidgetHeight()
             },
             notice(item) {
@@ -73,14 +82,14 @@
                     noticeArr = item;
                 noticeArr.unshift(newLastItem)
                 noticeArr.push(newFirstItem)
-                this.noticeOldArr = noticeArr
+                this.noticeArray = noticeArr
             },
             setIntervalEvent() {
-                let noticeArrLength = this.noticeOldArr.length,
+                let noticeArrLength = this.noticeArray.length,
                     noticeItem = this.$refs.notice,
                     index = 1
                 this.timeout = setInterval(() => {
-                    let noticeArrLength = this.noticeOldArr.length
+                    let noticeArrLength = this.noticeArray.length
                     index++
                     if (noticeArrLength - 1 == index) {
                         index = 1
@@ -131,9 +140,17 @@
 
 <style lang="css" src="../css/common.css"></style>
 <style>
+    .main {
+        flex: 1;
+        background-color: #666;
+    }
     .notice-main {
         height: 88px;
         overflow: hidden;
+    }
+    .no-notice {
+        height: 88px;
+        background-color: #fff;
     }
 
     .notice {
@@ -161,5 +178,12 @@
 
     .no-notice-content {
         height: 88px;
+    }
+
+    .center-height {
+        line-height: 40px;
+    }
+    .notice-no {
+        height: 0;
     }
 </style>
