@@ -111,7 +111,6 @@
             },
             broadcastWidgetHeight() {
                 let _params = this.$getPageParams();
-                for (let index = 1; index < 22; index = index + 10) {
                     setTimeout(() => {
                         dom.getComponentRect(this.$refs.wrap, (ret) => {
                             this.channel.postMessage({
@@ -119,8 +118,7 @@
                                 id: _params.id
                             });
                         });
-                    }, 100 * index)
-                }
+                    }, 200)
             }
         },
         created() {
