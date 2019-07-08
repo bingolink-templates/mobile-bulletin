@@ -141,6 +141,7 @@
 <style lang="css" src="../css/common.css"></style>
 <style>
     .main {
+		flex: 1;
     }
     .notice-main {
         height: 88px;
