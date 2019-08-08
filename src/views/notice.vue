@@ -1,5 +1,5 @@
 <template>
-    <div ref="wrap" class="main">
+    <div ref="wrap">
         <!-- 公告 -->
         <div class="notice-main"  :class="[noticeArray.length == 0? 'notice-no' : '']">
             <div ref='notice' class="notice-content">
@@ -140,9 +140,6 @@
 
 <style lang="css" src="../css/common.css"></style>
 <style>
-    .main {
-		flex: 1;
-    }
     .notice-main {
         height: 88px;
         overflow: hidden;
