@@ -44,6 +44,7 @@
                     linkapi.get({
                         url: params.comwidgetsUri + '/notice/list',
                     }).then((res) => {
+                        this.broadcastWidgetHeight()
                         if (res.code == 200) {
                             this.isError = true
                             let noticeArr = []
@@ -63,7 +64,6 @@
                             } else if (!this.refre) {
                                 this.setIntervalEvent()
                             }
-                            this.broadcastWidgetHeight()
                         }
                     }, (err) => {
                         this.error()

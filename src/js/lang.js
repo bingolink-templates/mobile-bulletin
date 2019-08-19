@@ -12,9 +12,9 @@ module.exports = {
         "ErrorLoadData": "加載失敗"
     },
     "en": {
-        "Notice": "notice",
+        "Notice": "Bulletin",
         "All": "More",
-        "NoneData": "No Notice",
+        "NoneData": "No Bulletin",
         "ErrorLoadData": "loading failed"
     }
 }
