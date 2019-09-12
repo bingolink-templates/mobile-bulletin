@@ -6,13 +6,13 @@
                 <div class="notice flex" v-for="(item, index) in noticeArray" :key='index' @click='noticeEvent(item.action)'>
                     <text class="c255 f35">{{i18n.Notice}}</text>
                     <div class="notice-lines"></div>
-                    <text class="lines1 notice-text f28 fw4">{{item.title}}</text>
+                    <text class="lines1 f28 fw4 flex1">{{item.title}}</text>
                 </div>
             </div>
         </div>
         <div class='no-notice flex-ac flex-jc' v-if='noticeArray.length == 0'>
-            <div class="flex-dr">
-                <bui-image src="/image/sleep.png" width="42px" height="39px"></bui-image>
+            <div class="flex-dr flex-ac">
+                <bui-image src="/image/sleep.png" width="20wx" height="20wx"></bui-image>
                 <text class="f26 c51 fw4 pl15 center-height">{{isError?i18n.NoneData:i18n.ErrorLoadData}}</text>
             </div>
         </div>
@@ -32,7 +32,8 @@
                 noticeArray: [],
                 timeout: null,
                 refre: false,
-                isError: true
+                isError: true,
+                isEl:false
             }
         },
         methods: {
@@ -122,8 +123,12 @@
             }
         },
         created() {
+            this.$fixViewport();
             linkapi.getLanguage((res) => {
                 this.i18n = this.$window[res]
+                if(res == 'en'){
+                    this.isEl = true
+                }
             })
         },
         mounted() {
@@ -164,6 +169,11 @@
 
     .notice-text {
         width: 600px;
+        color: rgba(77, 76, 79, 1);
+    }
+
+    .notice-el-text {
+        width: 500px;
         color: rgba(77, 76, 79, 1);
     }
 
