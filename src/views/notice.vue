@@ -4,7 +4,7 @@
         <div class="notice-main" :class="[noticeArray.length == 0? 'notice-no' : '']">
             <div ref='notice' class="notice-content">
                 <div class="notice flex" v-for="(item, index) in noticeArray" :key='index' @click='noticeEvent(item.action)'>
-                    <text class="c255 f35">{{i18n.Notice}}</text>
+                    <text class="f35"  v-bind:style="{'color': themeColor}">{{i18n.Notice}}</text>
                     <div class="notice-lines"></div>
                     <text class="lines1 f28 fw4 flex1">{{item.title}}</text>
                 </div>
@@ -35,12 +35,16 @@ export default {
             refre: false,
             isError: true,
             isShow: false,
+            themeColor: ''
         }
     },
     created() {
         this.$fixViewport();
         linkapi.getLanguage((res) => {
             this.i18n = this.$window[res]
+        })
+        linkapi.getThemeColor(res => {
+            this.themeColor = res.background_color;
         })
     },
     mounted() {
