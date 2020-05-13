@@ -4,7 +4,7 @@
         <div class="notice-main" :class="[noticeArray.length == 0? 'notice-no' : '']">
             <div ref='notice' class="notice-content">
                 <div class="notice flex" v-for="(item, index) in noticeArray" :key='index' @click='noticeEvent(item.action)'>
-                    <text class="f35"  v-bind:style="{'color': themeColor}">{{i18n.Notice}}</text>
+                    <text class="f35" v-bind:style="{'color': themeColor}">{{i18n.Notice}}</text>
                     <div class="notice-lines"></div>
                     <text class="lines1 f28 fw4 flex1">{{item.title}}</text>
                 </div>
@@ -76,6 +76,7 @@ export default {
             })
         },
         noticeEvent(url) {
+            if(!url) return
             linkapi.openLinkBroswer("", url);
         },
         UrlAddParam(url, name, value) {
@@ -116,6 +117,7 @@ export default {
             return url;
         },
         getAction(action) {
+            if(!action) return ''
             if (typeof action === 'string') {
                 action = action.replace(/[\r\n]/g, ' ')
                 try {
@@ -133,34 +135,41 @@ export default {
         },
         getNoticeData() {
             link.getServerConfigs([], (params) => {
+                let urlParams = this.resolveUrlParams(weex.config.bundleUrl)
                 linkapi.get({
                     url: params.comwidgetsUri + '/notice/list',
                     data: {
-                        limit: 8
+                        limit: 8,
+                        eCode: urlParams.ecode ? urlParams.ecode : 'localhost'
                     }
                 }).then((res) => {
-                    this.broadcastWidgetHeight()
-                    if (res.code == 200) {
-                        this.isError = true
-                        this.isShow = true
-                        let noticeArr = []
-                        for (let index = 0; index < res.data.length; index++) {
-                            const element = res.data[index];
-                            let noticeObj = {}
-                            let action = this.getAction(element.action)
-                            noticeObj["action"] = action
-                            noticeObj['title'] = element.title
-                            noticeArr.push(noticeObj)
+                    try {
+                        this.broadcastWidgetHeight()
+                        this.noticeArray = []
+                        if (res.code == 200) {
+                            this.isError = true
+                            this.isShow = true
+                            let noticeArr = []
+                            for (let index = 0; index < res.data.length; index++) {
+                                const element = res.data[index];
+                                let noticeObj = {}
+                                let action = this.getAction(element.action)
+                                noticeObj["action"] = action
+                                noticeObj['title'] = element.title
+                                noticeArr.push(noticeObj)
+                            }
+                            this.notice(noticeArr)
+                            storage.setItem('bulletinJLocalData', JSON.stringify(noticeArr))
+                            // 数据不为空 并且 数据与上次不一致 并且需要刷新后
+                            if (this.noticeArray.length != 0 && this.refre) {
+                                clearInterval(this.timeout)
+                                this.setIntervalEvent()
+                            } else if (!this.refre) {
+                                this.setIntervalEvent()
+                            }
                         }
-                        this.notice(noticeArr)
-                        storage.setItem('bulletinJLocalData', JSON.stringify(noticeArr))
-                        // 数据不为空 并且 数据与上次不一致 并且需要刷新后
-                        if (this.noticeArray.length != 0 && this.noticeArray != noticeArr && this.refre) {
-                            clearInterval(this.timeout)
-                            this.setIntervalEvent()
-                        } else if (!this.refre) {
-                            this.setIntervalEvent()
-                        }
+                    } catch (err) {
+                        this.error()
                     }
                 }, (err) => {
                     this.error()
@@ -174,6 +183,29 @@ export default {
             this.isShow = true
             this.broadcastWidgetHeight()
         },
+        resolveUrlParams(url) {
+            // let url = weex.config.bundleUrl;
+            if (!url) return {};
+            url = url + "";
+            var index = url.indexOf("?");
+            if (index > -1) {
+                url = url.substring(index + 1, url.length);
+            }
+            var pairs = url.split("&"),
+                params = {};
+            for (var i = 0; i < pairs.length; i++) {
+                var pair = pairs[i];
+                var indexEq = pair.indexOf("="),
+                    key = pair,
+                    value = null;
+                if (indexEq > 0) {
+                    key = pair.substring(0, indexEq);
+                    value = pair.substring(indexEq + 1, pair.length);
+                }
+                params[key] = value;
+            }
+            return params;
+        },
         notice(item) {
             let newFirstItem = item[0],
                 newLastItem = item[item.length - 1],
@@ -183,29 +215,42 @@ export default {
             this.noticeArray = noticeArr
         },
         setIntervalEvent() {
-            let noticeArrLength = this.noticeArray.length,
-                noticeItem = this.$refs.notice,
-                index = 1
-            this.timeout = setInterval(() => {
-                let noticeArrLength = this.noticeArray.length
-                index++
-                if (noticeArrLength - 1 == index) {
+            try {
+                let noticeArrLength = this.noticeArray.length,
+                    noticeItem = this.$refs.notice,
                     index = 1
-                    this.animationNotice(noticeItem, 0, 0)
+                if (this.refre) {
+                    this.animationNotice(this.$refs.notice, 0, 0)
+                    index = 0
+                    this.refre = false
                 }
-                this.animationNotice(noticeItem, index, 500)
-            }, 3000);
+                this.timeout = setInterval(() => {
+                    let noticeArrLength = this.noticeArray.length
+                    index++
+                    if (noticeArrLength - 1 == index) {
+                        index = 1
+                        this.animationNotice(noticeItem, 0, 0)
+                    }
+                    this.animationNotice(noticeItem, index, 500)
+                }, 3000);
+            } catch (err) {
+                this.error()
+            }
         },
         animationNotice(noticeItem, index, duration) {
-            animation.transition(noticeItem, {
-                styles: {
-                    transform: 'translateY(-' + 88 * index + 'px)',
-                },
-                duration: duration,
-                timingFunction: 'ease-in-out',
-                needLayout: false,
-                delay: 0
-            }, function () { })
+            try {
+                animation.transition(noticeItem, {
+                    styles: {
+                        transform: 'translateY(-' + 88 * index + 'px)',
+                    },
+                    duration: duration,
+                    timingFunction: 'ease-in-out',
+                    needLayout: false,
+                    delay: 0
+                }, function () { })
+            } catch (error) {
+                this.error()
+            }
         },
         getComponentRect(_params) {
             dom.getComponentRect(this.$refs.wrap, (ret) => {
