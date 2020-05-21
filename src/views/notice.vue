@@ -35,7 +35,8 @@ export default {
             refre: false,
             isError: true,
             isShow: false,
-            themeColor: ''
+            themeColor: '',
+            urlParams: {}
         }
     },
     created() {
@@ -46,6 +47,7 @@ export default {
         linkapi.getThemeColor(res => {
             this.themeColor = res.background_color;
         })
+        this.urlParams = this.resolveUrlParams(weex.config.bundleUrl)
     },
     mounted() {
         var that = this
@@ -61,7 +63,9 @@ export default {
     },
     methods: {
         getStorage(callback) {
-            storage.getItem('bulletinJLocalData', res => {
+            let pageId = this.urlParams.userId ? this.urlParams.userId : ''
+            let ecode = this.urlParams.ecode ? this.urlParams.ecode : 'localhost'
+            storage.getItem('bulletinJLocalData' + ecode + pageId, res => {
                 if (res.result == 'success') {
                     var data = JSON.parse(res.data)
                     this.isShow = true
@@ -135,12 +139,11 @@ export default {
         },
         getNoticeData() {
             link.getServerConfigs([], (params) => {
-                let urlParams = this.resolveUrlParams(weex.config.bundleUrl)
                 linkapi.get({
                     url: params.comwidgetsUri + '/notice/list',
                     data: {
                         limit: 8,
-                        eCode: urlParams.ecode ? urlParams.ecode : 'localhost'
+                        eCode: this.urlParams.ecode ? this.urlParams.ecode : 'localhost'
                     }
                 }).then((res) => {
                     try {
@@ -159,7 +162,8 @@ export default {
                                 noticeArr.push(noticeObj)
                             }
                             this.notice(noticeArr)
-                            storage.setItem('bulletinJLocalData', JSON.stringify(noticeArr))
+                            let pageId = this.urlParams.userId ? this.urlParams.userId : ''
+                            storage.setItem('bulletinJLocalData' + pageId, JSON.stringify(noticeArr))
                             // 数据不为空 并且 数据与上次不一致 并且需要刷新后
                             if (this.noticeArray.length != 0 && this.refre) {
                                 clearInterval(this.timeout)
