@@ -163,7 +163,8 @@ export default {
                             }
                             this.notice(noticeArr)
                             let pageId = this.urlParams.userId ? this.urlParams.userId : ''
-                            storage.setItem('bulletinJLocalData' + pageId, JSON.stringify(noticeArr))
+                            let ecode = this.urlParams.ecode ? this.urlParams.ecode : 'localhost'
+                            storage.setItem('bulletinJLocalData' + ecode + pageId, JSON.stringify(noticeArr))
                             // 数据不为空 并且 数据与上次不一致 并且需要刷新后
                             if (this.noticeArray.length != 0 && this.refre) {
                                 clearInterval(this.timeout)
