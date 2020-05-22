@@ -65,22 +65,27 @@ export default {
         getStorage(callback) {
             let pageId = this.urlParams.userId ? this.urlParams.userId : ''
             let ecode = this.urlParams.ecode ? this.urlParams.ecode : 'localhost'
-            storage.getItem('bulletinJLocalData' + ecode + pageId, res => {
-                if (res.result == 'success') {
-                    var data = JSON.parse(res.data)
-                    this.isShow = true
-                    this.isError = true
-                    this.notice(data)
-                    clearInterval(this.timeout)
-                    this.setIntervalEvent()
-                    this.broadcastWidgetHeight()
+            storage.getItem('bulletinJLocalData1' + ecode + pageId, res => {
+                console.log('公告数据', res);
+                if (res.result == 'success' && !(res.data == 'undefined') && res.data) {
+                    try {
+                        var data = JSON.parse(res.data)
+                        this.isShow = true
+                        this.isError = true
+                        this.notice(data)
+                        clearInterval(this.timeout)
+                        this.setIntervalEvent()
+                        this.broadcastWidgetHeight()
+                    } catch (error) {
+                        callback()
+                    }
                 } else {
                     callback()
                 }
             })
         },
         noticeEvent(url) {
-            if(!url) return
+            if (!url) return
             linkapi.openLinkBroswer("", url);
         },
         UrlAddParam(url, name, value) {
@@ -121,7 +126,7 @@ export default {
             return url;
         },
         getAction(action) {
-            if(!action) return ''
+            if (!action) return ''
             if (typeof action === 'string') {
                 action = action.replace(/[\r\n]/g, ' ')
                 try {
@@ -150,27 +155,31 @@ export default {
                         this.broadcastWidgetHeight()
                         this.noticeArray = []
                         if (res.code == 200) {
-                            this.isError = true
-                            this.isShow = true
-                            let noticeArr = []
-                            for (let index = 0; index < res.data.length; index++) {
-                                const element = res.data[index];
-                                let noticeObj = {}
-                                let action = this.getAction(element.action)
-                                noticeObj["action"] = action
-                                noticeObj['title'] = element.title
-                                noticeArr.push(noticeObj)
-                            }
-                            this.notice(noticeArr)
-                            let pageId = this.urlParams.userId ? this.urlParams.userId : ''
-                            let ecode = this.urlParams.ecode ? this.urlParams.ecode : 'localhost'
-                            storage.setItem('bulletinJLocalData' + ecode + pageId, JSON.stringify(noticeArr))
-                            // 数据不为空 并且 数据与上次不一致 并且需要刷新后
-                            if (this.noticeArray.length != 0 && this.refre) {
-                                clearInterval(this.timeout)
-                                this.setIntervalEvent()
-                            } else if (!this.refre) {
-                                this.setIntervalEvent()
+                            try {
+                                this.isError = true
+                                this.isShow = true
+                                let noticeArr = []
+                                for (let index = 0; index < res.data.length; index++) {
+                                    const element = res.data[index];
+                                    let noticeObj = {}
+                                    let action = this.getAction(element.action)
+                                    noticeObj["action"] = action
+                                    noticeObj['title'] = element.title
+                                    noticeArr.push(noticeObj)
+                                }
+                                let pageId = this.urlParams.userId ? this.urlParams.userId : ''
+                                let ecode = this.urlParams.ecode ? this.urlParams.ecode : 'localhost'
+                                storage.setItem('bulletinJLocalData1' + ecode + pageId, JSON.stringify(noticeArr))
+                                this.notice(noticeArr)
+                                // 数据不为空 并且 数据与上次不一致 并且需要刷新后
+                                if (this.noticeArray.length != 0 && this.refre) {
+                                    clearInterval(this.timeout)
+                                    this.setIntervalEvent()
+                                } else if (!this.refre) {
+                                    this.setIntervalEvent()
+                                }
+                            } catch (error) {
+                                this.error()
                             }
                         }
                     } catch (err) {
