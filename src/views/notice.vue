@@ -35,6 +35,7 @@ export default {
             refre: false,
             isError: true,
             isShow: false,
+            urlParams: {}
         }
     },
     created() {
@@ -54,15 +55,19 @@ export default {
         this.getStorage(function () {
             that.getNoticeData()
         })
+        this.urlParams = this.resolveUrlParams(weex.config.bundleUrl)
     },
     methods: {
         getStorage(callback) {
-            storage.getItem('bulletinJLocalData', res => {
+            let pageId = this.urlParams.userId ? this.urlParams.userId : ''
+            let ecode = this.urlParams.ecode ? this.urlParams.ecode : 'localhost'
+            storage.getItem('bulletinJLocalData2021126' + ecode + pageId, res => {
                 if (res.result == 'success') {
                     var data = JSON.parse(res.data)
                     this.isShow = true
                     this.isError = true
-                    this.notice(data)
+                    if(data.length != 0)
+                        this.notice(data)
                     clearInterval(this.timeout)
                     this.setIntervalEvent()
                     this.broadcastWidgetHeight()
@@ -139,6 +144,8 @@ export default {
                     if (res.code == 200) {
                         this.isError = true
                         this.isShow = true
+                        if (res.data && res.data.length == 0)
+                            return;
                         let noticeArr = []
                         for (let index = 0; index < res.data.length; index++) {
                             const element = res.data[index];
@@ -149,7 +156,9 @@ export default {
                             noticeArr.push(noticeObj)
                         }
                         this.notice(noticeArr)
-                        storage.setItem('bulletinJLocalData', JSON.stringify(noticeArr))
+                        let pageId = this.urlParams.userId ? this.urlParams.userId : ''
+                        let ecode = this.urlParams.ecode ? this.urlParams.ecode : 'localhost'
+                        storage.setItem('bulletinJLocalData2021126' + ecode + pageId, JSON.stringify(noticeArr))
                         // 数据不为空 并且 数据与上次不一致 并且需要刷新后
                         if (this.noticeArray.length != 0 && this.noticeArray != noticeArr && this.refre) {
                             clearInterval(this.timeout)
@@ -220,6 +229,29 @@ export default {
             setTimeout(() => {
                 this.getComponentRect(_params)
             }, 1200)
+        },
+        resolveUrlParams(url) {
+            // let url = weex.config.bundleUrl;
+            if (!url) return {};
+            url = url + "";
+            var index = url.indexOf("?");
+            if (index > -1) {
+                url = url.substring(index + 1, url.length);
+            }
+            var pairs = url.split("&"),
+                params = {};
+            for (var i = 0; i < pairs.length; i++) {
+                var pair = pairs[i];
+                var indexEq = pair.indexOf("="),
+                    key = pair,
+                    value = null;
+                if (indexEq > 0) {
+                    key = pair.substring(0, indexEq);
+                    value = pair.substring(indexEq + 1, pair.length);
+                }
+                params[key] = value;
+            }
+            return params;
         }
     }
 }
