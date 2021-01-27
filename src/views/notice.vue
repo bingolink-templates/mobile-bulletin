@@ -45,15 +45,14 @@ export default {
         })
     },
     mounted() {
-        var that = this
         this.channel.onmessage = (event) => {
             if (event.data.action === 'RefreshData') {
                 this.refre = true
                 this.getNoticeData()
             }
         }
-        this.getStorage(function () {
-            that.getNoticeData()
+        this.getStorage(() => {
+            this.getNoticeData()
         })
         this.urlParams = this.resolveUrlParams(weex.config.bundleUrl)
     },
@@ -61,12 +60,12 @@ export default {
         getStorage(callback) {
             let pageId = this.urlParams.userId ? this.urlParams.userId : ''
             let ecode = this.urlParams.ecode ? this.urlParams.ecode : 'localhost'
-            storage.getItem('bulletinJLocalData2021126' + ecode + pageId, res => {
+            storage.getItem('bulletinJLocalData2021127' + ecode + pageId, res => {
                 if (res.result == 'success') {
                     var data = JSON.parse(res.data)
                     this.isShow = true
                     this.isError = true
-                    if(data.length != 0)
+                    if (data.length != 0)
                         this.notice(data)
                     clearInterval(this.timeout)
                     this.setIntervalEvent()
@@ -155,10 +154,10 @@ export default {
                             noticeObj['title'] = element.title
                             noticeArr.push(noticeObj)
                         }
-                        this.notice(noticeArr)
+                        this.notice(JSON.parse(JSON.stringify(noticeArr)))
                         let pageId = this.urlParams.userId ? this.urlParams.userId : ''
                         let ecode = this.urlParams.ecode ? this.urlParams.ecode : 'localhost'
-                        storage.setItem('bulletinJLocalData2021126' + ecode + pageId, JSON.stringify(noticeArr))
+                        storage.setItem('bulletinJLocalData2021127' + ecode + pageId, JSON.stringify(noticeArr))
                         // 数据不为空 并且 数据与上次不一致 并且需要刷新后
                         if (this.noticeArray.length != 0 && this.noticeArray != noticeArr && this.refre) {
                             clearInterval(this.timeout)
